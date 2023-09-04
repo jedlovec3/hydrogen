@@ -1,0 +1,46 @@
+---
+title: "Hydrogen Projects Data Set"
+output: html_notebook
+---
+
+Load necessary packages
+```{r}
+library(tidyverse)
+library(googlesheets4)
+#install.packages("usmap")
+library(usmap) #import the package
+#library(ggplot2) #use ggplot2 to add layer for visualization
+#install.packages("sp")
+#install.packages("sf")
+library(sp)
+library(sf)
+
+```
+
+Load hydrogen projects data from google sheet
+```{r}
+gs4_deauth()
+hydrogen_projects <- read_sheet("https://docs.google.com/spreadsheets/d/17YCMTTdN7yf_oA8eriyD9tPt1SePWWQmj-AvJY5lbiE/edit#gid=1245935679", sheet = "Projects")
+
+hydrogen_projects
+```
+
+Test plotting lat and long 
+```{r}
+
+?usmap_transform
+
+transformed_data <- as.data.frame(hydrogen_projects)
+
+transformed_data <- transformed_data %>% 
+  select(lat = Latitude, lon = Longitude) %>% 
+  drop_na(lat) 
+
+transformed_data2 <- usmap_transform(transformed_data) #, input_names = c("lon", "lat"))
+
+plot_usmap(regions = "states") + 
+  geom_point(data=transformed_data2, aes(x=x, y=y))
+
+
+```
+
