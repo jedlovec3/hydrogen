@@ -1,0 +1,83 @@
+---
+title: "Plot Existing Hydrogen Production Sites"
+output: html_notebook
+---
+
+Load packages
+```{r}
+library(tidyverse)
+library(googlesheets4)
+#install.packages("usmap")
+library(usmap) #import the package
+library(sp)
+library(sf)
+```
+
+Load FLIGHT data of hydrogen production facilities and emissions
+From EPA GHG Reporting Program
+```{r}
+gs4_deauth()
+hydrogen_facilities <- read_sheet("https://docs.google.com/spreadsheets/d/1brgpubGCQnaHMB5ZtfV0yqNqgP-y1CnLciyD3VW1jCU/edit?usp=sharing", sheet = "FLIGHT Facilities and GHG Quantities")
+
+hydrogen_facilities
+
+```
+
+Plot hydrogen production facilities in EPA data set
+
+```{r}
+
+facilities_df <- as.data.frame(hydrogen_facilities)
+
+facilities_df <- facilities_df %>% 
+  rename(lat = LATITUDE, lon = LONGITUDE) %>% 
+  drop_na(lat) 
+
+df_transformed <- usmap_transform(facilities_df)
+
+plot_usmap(regions = "states") + 
+  geom_point(data=df_transformed, aes(x=x, y=y), size = 0.5, color = "red") +
+  ggtitle("US Hydrogen Production Facilities (2021)") 
+
+```
+
+
+```{r}
+
+#Sized by emissions
+plot_usmap(regions = "states") + 
+  geom_point(data=df_transformed, aes(x=x, y=y, size=`GHG QUANTITY (METRIC TONS CO2e)`), color = "red") +
+  ggtitle("US Hydrogen Production Facilities (2021)") 
+
+#move legend
+#draw outline on points
+
+#add column with simplified parent company
+df_transformed <- df_transformed %>% 
+  mutate(parent = case_when(
+    str_detect(`PARENT COMPANIES`, regex( "Air Products", ignore_case = T)) ~ "Air Products",
+    str_detect(`PARENT COMPANIES`, regex( "Linde", ignore_case = T)) ~ "Linde",
+    str_detect(`PARENT COMPANIES`, regex( "Air Liquide", ignore_case = T)) ~ "Air Liquide",
+    #str_detect(`PARENT COMPANIES`, regex( "PHILLIPS 66", ignore_case = T)) ~ "Oil & Gas",
+    .default = "Other"
+  ))
+
+#Color by parent company
+plot_usmap(regions = "states") + 
+  geom_point(data=df_transformed, aes(x=x, y=y, color=parent), size = 0.5) +
+  ggtitle("US Hydrogen Production Facilities (2021)") 
+
+
+```
+
+
+Group by parent company
+```{r}
+hydrogen_facilities %>% 
+  group_by(`PARENT COMPANIES`) %>% 
+  summarize(facilities = n(), emissions_mt_co2e = sum(`GHG QUANTITY (METRIC TONS CO2e)`)) %>% 
+  arrange(desc(emissions_mt_co2e))
+
+```
+
+

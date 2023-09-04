@@ -1,5 +1,5 @@
 ---
-title: "Hydrogen Projects Data Set"
+title: "Hydrogen Low-Carbon Projects Data Set"
 output: html_notebook
 ---
 
@@ -25,21 +25,19 @@ hydrogen_projects <- read_sheet("https://docs.google.com/spreadsheets/d/17YCMTTd
 hydrogen_projects
 ```
 
-Test plotting lat and long 
+Test plotting lat and lon
 ```{r}
+h2_df <- as.data.frame(hydrogen_projects)
 
-?usmap_transform
-
-transformed_data <- as.data.frame(hydrogen_projects)
-
-transformed_data <- transformed_data %>% 
-  select(lat = Latitude, lon = Longitude) %>% 
+h2_df <- h2_df %>% 
+  select(lat = Latitude, lon = Longitude) %>% #add other fields here
   drop_na(lat) 
 
-transformed_data2 <- usmap_transform(transformed_data) #, input_names = c("lon", "lat"))
+h2_transformed <- usmap_transform(h2_df)
 
 plot_usmap(regions = "states") + 
-  geom_point(data=transformed_data2, aes(x=x, y=y))
+  geom_point(data=h2_transformed, aes(x=x, y=y))
+
 
 
 ```
