@@ -1,0 +1,2 @@
+Datetime (UTC),Country,Zone Name,Zone Id,Carbon Intensity gCO₂eq/kWh (direct),Carbon Intensity gCO₂eq/kWh (LCA),Low Carbon Percentage,Renewable Percentage,Data Source
+2021-01-01 00:00:00,USA,Balancing Authority Of Northern California,US-CAL-BANC,203.10,273.26,50.54,47.55,eia.gov; Electricity Maps Estimation

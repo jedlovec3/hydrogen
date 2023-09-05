@@ -1,0 +1,23 @@
+---
+title: "Grid Carbon Intensity by Balancing Authority"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+
+```
+
+Downloaded data from Electricity Maps
+https://www.electricitymaps.com/data-portal/united-states-of-america
+
+
+```{r}
+temp <- list.files("BA Carbon 2021/", full.names = TRUE)#, pattern = "\\.csv$") 
+ba_carbon <- readr::read_csv(temp, id = "file_name")
+
+temp
+ba_carbon
+```
+

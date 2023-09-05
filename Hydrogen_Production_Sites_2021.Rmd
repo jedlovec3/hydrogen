@@ -46,8 +46,9 @@ plot_usmap(regions = "states") +
 
 #Sized by emissions
 plot_usmap(regions = "states") + 
-  geom_point(data=df_transformed, aes(x=x, y=y, size=`GHG QUANTITY (METRIC TONS CO2e)`), color = "red") +
-  ggtitle("US Hydrogen Production Facilities (2021)") 
+  geom_point(data=df_transformed, aes(x=x, y=y, size=`GHG QUANTITY (METRIC TONS CO2e)`), color="red") +
+  ggtitle("US Hydrogen Production Facilities (2021)") +
+  theme(legend.position = "right")
 
 #move legend
 #draw outline on points
@@ -64,8 +65,11 @@ df_transformed <- df_transformed %>%
 
 #Color by parent company
 plot_usmap(regions = "states") + 
-  geom_point(data=df_transformed, aes(x=x, y=y, color=parent), size = 0.5) +
-  ggtitle("US Hydrogen Production Facilities (2021)") 
+  #geom_point(data=df_transformed, aes(x=x, y=y, color=parent, size = `GHG QUANTITY (METRIC TONS CO2e)`)) +
+  geom_point(data=df_transformed, aes(x=x, y=y, color=parent)) +
+  ggtitle("US Hydrogen Production Facilities (2021)") +
+  theme(legend.position = "right")
+#make empty circles? 
 
 
 ```
@@ -78,6 +82,12 @@ hydrogen_facilities %>%
   summarize(facilities = n(), emissions_mt_co2e = sum(`GHG QUANTITY (METRIC TONS CO2e)`)) %>% 
   arrange(desc(emissions_mt_co2e))
 
+
+hydrogen_facilities %>%  
+  summarize(facilities = n(), emissions_mt_co2e = sum(`GHG QUANTITY (METRIC TONS CO2e)`)) 
+
 ```
 
+
+Go back and include ammonia production in FLIGHT data
 
