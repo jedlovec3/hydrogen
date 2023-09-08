@@ -1755,13 +1755,22 @@ Authority</h1>
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5cbmBgYCJ9 -->
-<pre class="r"><code>library(tidyverse)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShqc29ubGl0ZSlcblxuYGBgIn0= -->
+<pre class="r"><code>library(jsonlite)
 </code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYanNvbmxpdGXigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpwdXJycuKAmTpcblxuICAgIGZsYXR0ZW5cbiJ9 -->
+<pre><code>
+Attaching package: ‘jsonlite’
+
+The following object is masked from ‘package:purrr’:
+
+    flatten</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Downloaded data from Electricity Maps <a href="https://www.electricitymaps.com/data-portal/united-states-of-america" class="uri">https://www.electricitymaps.com/data-portal/united-states-of-america</a></p>
+<p>Merge balancing authority files</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGVtcCA8LSBsaXN0LmZpbGVzKFwiQkEgQ2FyYm9uIDIwMjEvXCIsIGZ1bGwubmFtZXMgPSBUUlVFKSMsIHBhdHRlcm4gPSBcIlxcXFwuY3N2JFwiKSBcbmJhX2NhcmJvbiA8LSByZWFkcjo6cmVhZF9jc3YodGVtcCwgaWQgPSBcImZpbGVfbmFtZVwiKVxuYGBgIn0= -->
@@ -1822,9 +1831,28 @@ dttm (1): Datetime (UTC)
 <!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<p>Register with Electricity Maps - done Test live carbon intensity call
+with lat and lon - done Test get zone in response - done</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzcF9qc29uIDwtIHJlc3AgJT4lIHJlc3BfYm9keV9qc29uKClcbmRhdGFfZGYgPC0gYXMuZGF0YS5mcmFtZShyZXNwX2pzb24pXG5kYXRhX2RmJHpvbmVcblxuYGBgIn0= -->
+<pre class="r"><code>resp_json &lt;- resp %&gt;% resp_body_json()
+data_df &lt;- as.data.frame(resp_json)
+data_df$zone
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiVVMtQ0FMLUNJU09cIlxuIn0= -->
+<pre><code>[1] &quot;US-CAL-CISO&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Write function to input lat/lon and output zone Run function on all
+valid lat/lon data in set Add zone to “planned_sites”</p>
+<p>Match on ba code at end of Zone Id to “ba_carbon” Match to grid 2021
+average for the zone/balancing authority</p>
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiR3JpZCBDYXJib24gSW50ZW5zaXR5IGJ5IEJhbGFuY2luZyBBdXRob3JpdHkiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCgpgYGB7cn0KbGlicmFyeSh0aWR5dmVyc2UpCgpgYGAKCkRvd25sb2FkZWQgZGF0YSBmcm9tIEVsZWN0cmljaXR5IE1hcHMKaHR0cHM6Ly93d3cuZWxlY3RyaWNpdHltYXBzLmNvbS9kYXRhLXBvcnRhbC91bml0ZWQtc3RhdGVzLW9mLWFtZXJpY2EKCgpgYGB7cn0KdGVtcCA8LSBsaXN0LmZpbGVzKCJCQSBDYXJib24gMjAyMS8iLCBmdWxsLm5hbWVzID0gVFJVRSkjLCBwYXR0ZXJuID0gIlxcLmNzdiQiKSAKYmFfY2FyYm9uIDwtIHJlYWRyOjpyZWFkX2Nzdih0ZW1wLCBpZCA9ICJmaWxlX25hbWUiKQoKdGVtcApiYV9jYXJib24KYGBgCgo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiR3JpZCBDYXJib24gSW50ZW5zaXR5IGJ5IEJhbGFuY2luZyBBdXRob3JpdHkiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCgpgYGB7cn0KbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoaHR0cjIpCmxpYnJhcnkoanNvbmxpdGUpCmBgYAoKRG93bmxvYWRlZCBkYXRhIGZyb20gRWxlY3RyaWNpdHkgTWFwcwpodHRwczovL3d3dy5lbGVjdHJpY2l0eW1hcHMuY29tL2RhdGEtcG9ydGFsL3VuaXRlZC1zdGF0ZXMtb2YtYW1lcmljYQoKTWVyZ2UgYmFsYW5jaW5nIGF1dGhvcml0eSBmaWxlcwpgYGB7cn0KdGVtcCA8LSBsaXN0LmZpbGVzKCJCQSBDYXJib24gMjAyMS8iLCBmdWxsLm5hbWVzID0gVFJVRSkjLCBwYXR0ZXJuID0gIlxcLmNzdiQiKSAKYmFfY2FyYm9uIDwtIHJlYWRyOjpyZWFkX2Nzdih0ZW1wLCBpZCA9ICJmaWxlX25hbWUiKQoKdGVtcApiYV9jYXJib24KYGBgCgpSZWdpc3RlciB3aXRoIEVsZWN0cmljaXR5IE1hcHMgLSBkb25lClRlc3QgbGl2ZSBjYXJib24gaW50ZW5zaXR5IGNhbGwgd2l0aCBsYXQgYW5kIGxvbiAtIGRvbmUKVGVzdCBnZXQgem9uZSBpbiByZXNwb25zZSAtIGRvbmUKCmBgYHtyfQoKYXBpX2tleSA8LSBTeXMuZ2V0ZW52KCJlbGVjdHJpY2l0eW1hcHNfa2V5IikKCmxhdCA8LSAzMy45MDU4MwkKbG9uIDwtIC0xMTguNDAxOTQKCnJlcSA8LSByZXF1ZXN0KHBhc3RlKCdodHRwczovL2FwaS1hY2Nlc3MuZWxlY3RyaWNpdHltYXBzLmNvbS9mcmVlLXRpZXIvY2FyYm9uLWludGVuc2l0eS9sYXRlc3Q/JywnbGF0PScsbGF0LCcmbG9uPScsbG9uLCBzZXA9JycpKSAlPiUgCiAgcmVxX2hlYWRlcnMoJ2F1dGgtdG9rZW4nID0gYXBpX2tleSkgCgojcmVxICU+JSByZXFfZHJ5X3J1bigpCgpyZXNwIDwtIHJlcV9wZXJmb3JtKHJlcSkKcmVzcF9qc29uIDwtIHJlc3AgJT4lIHJlc3BfYm9keV9qc29uKCkKZGF0YV9kZiA8LSBhcy5kYXRhLmZyYW1lKHJlc3BfanNvbikKZGF0YV9kZiR6b25lCgpgYGAKCldyaXRlIGZ1bmN0aW9uIHRvIGlucHV0IGxhdC9sb24gYW5kIG91dHB1dCB6b25lClJ1biBmdW5jdGlvbiBvbiBhbGwgdmFsaWQgbGF0L2xvbiBkYXRhIGluIHNldApBZGQgem9uZSB0byAicGxhbm5lZF9zaXRlcyIKCk1hdGNoIG9uIGJhIGNvZGUgYXQgZW5kIG9mIFpvbmUgSWQgdG8gImJhX2NhcmJvbiIKTWF0Y2ggdG8gZ3JpZCAyMDIxIGF2ZXJhZ2UgZm9yIHRoZSB6b25lL2JhbGFuY2luZyBhdXRob3JpdHkKCgo=</div>
 
 
 

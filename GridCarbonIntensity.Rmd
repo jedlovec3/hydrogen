@@ -6,13 +6,14 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
-
+library(httr2)
+library(jsonlite)
 ```
 
 Downloaded data from Electricity Maps
 https://www.electricitymaps.com/data-portal/united-states-of-america
 
-
+Merge balancing authority files
 ```{r}
 temp <- list.files("BA Carbon 2021/", full.names = TRUE)#, pattern = "\\.csv$") 
 ba_carbon <- readr::read_csv(temp, id = "file_name")
@@ -20,4 +21,35 @@ ba_carbon <- readr::read_csv(temp, id = "file_name")
 temp
 ba_carbon
 ```
+
+Register with Electricity Maps - done
+Test live carbon intensity call with lat and lon - done
+Test get zone in response - done
+
+```{r}
+
+api_key <- Sys.getenv("electricitymaps_key")
+
+lat <- 33.90583	
+lon <- -118.40194
+
+req <- request(paste('https://api-access.electricitymaps.com/free-tier/carbon-intensity/latest?','lat=',lat,'&lon=',lon, sep='')) %>% 
+  req_headers('auth-token' = api_key) 
+
+#req %>% req_dry_run()
+
+resp <- req_perform(req)
+resp_json <- resp %>% resp_body_json()
+data_df <- as.data.frame(resp_json)
+data_df$zone
+
+```
+
+Write function to input lat/lon and output zone
+Run function on all valid lat/lon data in set
+Add zone to "planned_sites"
+
+Match on ba code at end of Zone Id to "ba_carbon"
+Match to grid 2021 average for the zone/balancing authority
+
 
