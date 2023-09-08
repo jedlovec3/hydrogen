@@ -30,7 +30,7 @@ Test plotting lat and lon
 hydrogen_projects_df <- as.data.frame(hydrogen_projects)
 
 planned_sites <- hydrogen_projects_df %>% 
-  select(lat = Latitude, lon = Longitude) %>% #add other fields here
+  rename(lat = Latitude, lon = Longitude) %>% #add other fields here
   drop_na(lat,lon) 
 
 planned_sites_t <- usmap_transform(planned_sites)

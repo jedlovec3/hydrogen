@@ -45,11 +45,87 @@ data_df$zone
 
 ```
 
-Write function to input lat/lon and output zone
-Run function on all valid lat/lon data in set
-Add zone to "planned_sites"
+Create list of unique lat and lon combinations for looking up zones
+```{r}
+gis_list <- distinct(planned_sites, lat, lon)
+```
+
+Write function to input lat/lon and output zone and add zone to "planned_sites"
+```{r}
+#planned_sites 
+
+get_zones <- function(i) {
+
+#i <- 2
+lat_i <- gis_list[i,"lat"]
+lon_i <- gis_list[i,"lon"]
+
+req <- request(paste('https://api-access.electricitymaps.com/free-tier/carbon-intensity/latest?','lat=',lat_i,'&lon=',lon_i, sep='')) %>% 
+  req_headers('auth-token' = api_key) 
+
+resp <- req_perform(req)
+resp_json <- resp %>% resp_body_json()
+data_df <- as.data.frame(resp_json)
+zone <- data_df$zone
+
+planned_sites <<- planned_sites %>% 
+  rows_update(tibble(lat = lat_i, lon = lon_i, grid_zone = zone), by = c("lat","lon"))
+  
+}
+
+
+```
+
+Write a function to suppress message output:
+```{r}
+quiet <- function(x) { 
+  sink(tempfile()) 
+  on.exit(sink()) 
+  invisible(force(x)) 
+} 
+```
+
+Run get_zones function on all locations
+```{r}
+
+for (i in 1:nrow(gis_list)) {
+    #print(i)
+    #currentTime <- Sys.time()
+    #print(currentTime)
+    quiet(get_zones(i))
+    Sys.sleep(0.1) #so as not to exceed the rate limit for the API
+}
+
+planned_sites
+
+```
+
 
 Match on ba code at end of Zone Id to "ba_carbon"
-Match to grid 2021 average for the zone/balancing authority
+Identify grid 2021 average for the zone/balancing authority for each site
+```{r}
+site_carbon <- planned_sites %>% 
+  left_join(ba_carbon, by = join_by(grid_zone == 'Zone Id')) %>% 
+  rename(co2e_direct = 'Carbon Intensity gCO₂eq/kWh (direct)', co2e_lca = 'Carbon Intensity gCO₂eq/kWh (LCA)')
+
+```
 
 
+Filter on normalised capacity to get green (electrolized) H2 only
+```{r}
+green_sites <- 
+site_carbon %>% 
+  filter(`Normalised capacity (MWel)` > 0 )
+```
+
+Site emissions * estimated electricity usage
+Calculate green h2 site emissions based on listed renewables LCA from elsewhere
+Compare to emissions if totally sourced from grid (above)
+
+Plot green H2 sites with color indicating carbon emissions level
+
+Look at CO2/H2 for gray, green, blue sites
+Gray - use data from hydrogen_facilities (weed out green/blue sites?)
+Green - use type of renewables LCA reference from elsewhere
+Blue - estimate total CO2 byproduct and subtract captured? 
+        - Use data from hydrogen facilities or find other reference?
