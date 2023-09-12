@@ -19,7 +19,8 @@ From EPA GHG Reporting Program
 gs4_deauth()
 hydrogen_facilities <- read_sheet("https://docs.google.com/spreadsheets/d/1brgpubGCQnaHMB5ZtfV0yqNqgP-y1CnLciyD3VW1jCU/edit?usp=sharing", sheet = "FLIGHT Facilities and GHG Quantities")
 
-hydrogen_facilities
+hydrogen_facilities %>% 
+  arrange(desc(`GHG QUANTITY (METRIC TONS CO2e)`))
 
 ```
 
@@ -71,6 +72,13 @@ plot_usmap(regions = "states") +
   theme(legend.position = "right")
 #make empty circles? 
 
+#Color by parent company
+plot_usmap(regions = "states") + 
+  geom_point(data=df_transformed, aes(x=x, y=y, color=parent, size = `GHG QUANTITY (METRIC TONS CO2e)`)) +
+  ggtitle("US Hydrogen Production Facilities (2021)") +
+  theme(legend.position = "right")
+#make empty circles? 
+
 
 ```
 
@@ -81,7 +89,6 @@ hydrogen_facilities %>%
   group_by(`PARENT COMPANIES`) %>% 
   summarize(facilities = n(), emissions_mt_co2e = sum(`GHG QUANTITY (METRIC TONS CO2e)`)) %>% 
   arrange(desc(emissions_mt_co2e))
-
 
 hydrogen_facilities %>%  
   summarize(facilities = n(), emissions_mt_co2e = sum(`GHG QUANTITY (METRIC TONS CO2e)`)) 

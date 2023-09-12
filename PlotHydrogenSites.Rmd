@@ -22,7 +22,13 @@ Load hydrogen projects data from google sheet
 gs4_deauth()
 hydrogen_projects <- read_sheet("https://docs.google.com/spreadsheets/d/17YCMTTdN7yf_oA8eriyD9tPt1SePWWQmj-AvJY5lbiE/edit#gid=1245935679", sheet = "Projects")
 
-hydrogen_projects
+hydrogen_projects <- hydrogen_projects %>% 
+  mutate(type = case_when(
+          `Normalised capacity (MWel)` > 0 ~ 'green',
+          `Normalised capacity (t CO₂ captured/y)` > 0 ~ 'blue')
+          )
+  
+hydrogen_projects 
 ```
 
 Test plotting lat and lon
@@ -36,7 +42,109 @@ planned_sites <- hydrogen_projects_df %>%
 planned_sites_t <- usmap_transform(planned_sites)
 
 plot_usmap(regions = "states") + 
-  geom_point(data=planned_sites_t, aes(x=x, y=y))
+  geom_point(data=planned_sites_t, aes(x=x, y=y, color=type)) +
+  ggtitle("Sample of Planned US Green & Blue Hydrogen Production Facilities") +
+  theme(legend.position = "right") +
+  labs(colour = "H2 Type") +
+  scale_color_manual(values = c("blue" = "blue",
+                                "green"="green")) 
 
 ```
+
+Pull data from GridCarbonIntensity.Rmd
+
+Plot green sites
+- Size by grid carbon intensity
+- Size by renewable percentage
+
+```{r}
+#green_sites
+
+green_sites_t <- usmap_transform(green_sites)
+
+plot_usmap(regions = "states") + 
+  geom_point(data=green_sites_t, aes(x=x, y=y, size=co2e_lca), color="brown") 
+
+plot_usmap(regions = "states") + 
+  geom_point(data=green_sites_t, aes(x=x, y=y, size=`Renewable Percentage`), color="green")
+
+```
+
+
+Zone emissions * estimated electricity usage
+Calculate green h2 site emissions based on listed renewables LCA from elsewhere
+Compare to emissions if totally sourced from grid (above)
+
+```{r}
+#green_sites
+
+green_sites %>% 
+  mutate(ratio = `Normalised capacity (nm³ H₂/h)`*1.0/`Normalised capacity (kt H2/y)`, el_ratio = `Normalised capacity (MWel)`*1.0/`Normalised capacity (kt H2/y)`)
+
+#ratio of nm³/h to kt/y is a constant 1282.643
+#ratio of MW capacity to kt/y is a constant per electrolysis method
+
+#use estimate that 50 kWh electricity required to produce 1 kg of H2
+#https://en.wikipedia.org/wiki/Hydrogen_economy
+#co2e_lca = 'Carbon Intensity gCO₂eq/kWh (LCA)'
+
+#use estimate of 50 g/kWh for solar LCA
+#https://www.nrel.gov/docs/fy13osti/56487.pdf
+
+#g CO2/kWh * 1 t CO2/1,000,000 g CO2 * 50 kWh/kg H2 * 1,000,000 kg H2/ kt H2 * kt H2 / y => t CO2 / y
+
+green_sites <- green_sites %>% 
+  mutate(est_elec_GWh_y = 50 * `Normalised capacity (kt H2/y)`) %>% 
+  mutate(t_co2e_y_solar = est_elec_GWh_y*50, t_co2e_y_grid = co2e_lca * 50 * `Normalised capacity (kt H2/y)`) %>% 
+  mutate(co2_h2_ratio_solar = t_co2e_y_solar/1000/`Normalised capacity (kt H2/y)`, co2_h2_ratio_grid = t_co2e_y_grid/1000/`Normalised capacity (kt H2/y)`, solar_pct = t_co2e_y_solar/t_co2e_y_grid) 
+
+green_sites
+
+#~21 co2:h2 ratio tracks
+#https://www.sciencedirect.com/science/article/pii/S2590174520300155
+
+```
+
+```{r}
+green_sites_table <- green_sites %>% 
+  mutate(solar_co2_reduction_pct = 100*(1-solar_pct)) %>% 
+  select(`Project name`, `Company`, `Date online`,`Normalised capacity (kt H2/y)`, grid_zone, solar_co2_reduction_pct, co2_h2_ratio_solar, co2_h2_ratio_grid)
+
+write_csv(green_sites_table, file = "green_sites_table.csv")
+
+```
+
+
+
+Plot green H2 sites with color indicating carbon emissions level
+
+```{r}
+
+green_sites_t <- usmap_transform(green_sites)
+
+plot_usmap(regions = "states") + 
+  geom_point(data=green_sites_t, aes(x=x, y=y, size=t_co2e_y_grid), color="brown") +
+  ggtitle("Life-Cycle Emissions Based on Grid Electricity") +
+  theme(legend.position = "right") +
+  labs(size = "Metric Tons CO2/Year")  
+
+
+plot_usmap(regions = "states") + 
+  geom_point(data=green_sites_t, aes(x=x, y=y, size=t_co2e_y_solar), color="brown") +
+  ggtitle("Life-Cycle Emissions Based on Solar LCA") +
+  theme(legend.position = "right") +
+  labs(size = "Metric Tons CO2/Year") 
+```
+
+Look at CO2/H2 for gray, green, blue sites
+https://www.sciencedirect.com/science/article/pii/S2590174520300155
+2.5 for green
+7 for blue
+10-15 for gray
+25 for grid-powered electrolysis
+
+Gray - use data from hydrogen_facilities (weed out green/blue sites?)
+Green - use type of renewables LCA reference from elsewhere
+Blue - estimate total CO2 byproduct and subtract captured? 
+        - Use data from hydrogen facilities or find other reference?
 
